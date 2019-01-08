@@ -12,7 +12,7 @@ type DumpTest struct {
 	anInt        int
 }
 
-func ExamplePrint() {
+func Example() {
 	// Standard fmt.Print*()-style functions.
 	trace.Print()
 	trace.Print("Print()", "second", 3)

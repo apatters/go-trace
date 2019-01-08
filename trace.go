@@ -6,7 +6,7 @@
 //
 // There is also a Dump() function used to dump complex data
 // structures in an easy to understand format. The Dump function uses
-// a modified verions of Dave Collins'
+// a modified version of Dave Collins'
 // https://github.com/davecgh/go-spew package to pretty-print data
 // structures.
 package trace

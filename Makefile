@@ -76,6 +76,7 @@ GO_CACHE               := $(GO_BUILD_CACHE_DIR)
 GO_BUILD_FLAGS         :=
 GO_INSTALL_FLAGS       :=
 GO_TEST_FLAGS          :=
+GO_MODULE_FLAGS        := -mod vendor
 
 GO_LINTER_NAME         := golangci-lint
 GO_LINTER              := $(shell which $(GO_LINTER_NAME) 2>/dev/null)
@@ -89,6 +90,17 @@ GO_LINTER_OPTIONS      := \
 			--tests \
 			--deadline=600s \
 			$(addprefix -E, $(GO_LINTER_INCLUDES)) $(addprefix -D, $(GO_LINTER_EXCLUDES))
+
+define check_module_support
+	set -e ; \
+	go_version=$$(go version | cut -f3 -d " ") ; \
+	go_major_version=$$(go version | sed -re 's!^.*go([0-9]+)\.([0-9]+).*!\1!') ; \
+	go_minor_version=$$(go version | sed -re 's!^.*go([0-9]+)\.([0-9]+).*!\2!') ; \
+	if [ $${go_version} != "devel" -a $${go_major_version} -lt 2 -a $${go_minor_version} -lt 11 ]; then \
+		echo "error: Vendoring is not supported for go versions < 1.11"  >&2 ; \
+		exit 1 ; \
+	fi
+endef
 
 help:
 	$(info $(HELP))
@@ -107,12 +119,12 @@ $(TGTS_DIR)/setup.tgt: $(TGTS_DIR)/dirs.tgt
 setup: $(TGTS_DIR)/setup.tgt
 
 test: $(TGTS_DIR)/setup.tgt
-	cd $(GO_SRC_DIR); GOCACHE=$(GO_CACHE) GOBIN=$(GO_BIN) go test -mod vendor -bench=. $(GO_TEST_FLAGS)  ./...
+	cd $(GO_SRC_DIR); GOCACHE=$(GO_CACHE) GOBIN=$(GO_BIN) go test -race $(GO_TEST_FLAGS) $$(go list ./... | grep -v vendor)
 
 all: test
 
 fmt:
-	cd $(CURDIR); GOCACHE=$(GO_CACHE) GO111MODULE=on go fmt ./...
+	cd $(CURDIR); GOCACHE=$(GO_CACHE) go fmt $$(go list ./... | grep -v vendor)
 
 lint: $(TGTS_DIR)/setup.tgt
 	@if [ -z "$(GO_LINTER)" ]; then \
@@ -122,12 +134,14 @@ lint: $(TGTS_DIR)/setup.tgt
 	cd $(GO_SRC_DIR); $(GO_LINTER_NAME) $(GO_LINTER_OPTIONS) $(GO_LINT_FLAGS)
 
 vendor: setup
+	$(check_module_support)
 	rm -rf $(GO_BUILD_CACHE_DIR) $(GO_SRC_DIR)/go.mod $(GO_SRC_DIR)/go.sum $(GO_VENDOR_DIR)
 	cd $(GO_SRC_DIR); GOCACHE=$(GO_CACHE) go mod init $(GO_REPO_SITE)/$(GO_REPO_SUBDIR)
 	cd $(GO_SRC_DIR); GOCACHE=$(GO_CACHE) go mod vendor
 	cd $(GO_SRC_DIR); GOCACHE=$(GO_CACHE) go mod tidy
 
 update_vendor: setup
+	$(check_module_support)
 	cd $(GO_SRC_DIR); GOCACHE=$(GO_CACHE) go mod tidy
 	cd $(GO_SRC_DIR); GOCACHE=$(GO_CACHE) go mod vendor
 
