@@ -76,7 +76,10 @@ GO_CACHE               := $(GO_BUILD_CACHE_DIR)
 GO_BUILD_FLAGS         :=
 GO_INSTALL_FLAGS       :=
 GO_TEST_FLAGS          :=
-GO_MODULE_FLAGS        := -mod vendor
+
+ifeq ($(TRAVIS), true)
+TRAVIS_GO_TEST_FLAGS=-v
+endif
 
 GO_LINTER_NAME         := golangci-lint
 GO_LINTER              := $(shell which $(GO_LINTER_NAME) 2>/dev/null)
@@ -119,7 +122,7 @@ $(TGTS_DIR)/setup.tgt: $(TGTS_DIR)/dirs.tgt
 setup: $(TGTS_DIR)/setup.tgt
 
 test: $(TGTS_DIR)/setup.tgt
-	cd $(GO_SRC_DIR); GOCACHE=$(GO_CACHE) GOBIN=$(GO_BIN) go test -race $(GO_TEST_FLAGS) $$(go list ./... | grep -v vendor)
+	cd $(GO_SRC_DIR); GOCACHE=$(GO_CACHE) GOBIN=$(GO_BIN) go test -race $(TRAVIS_GO_TEST_FLAGS) $(GO_TEST_FLAGS) $$(go list ./... | grep -v vendor)
 
 all: test
 
