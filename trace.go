@@ -1,14 +1,18 @@
-// Package trace is used for printf-style tracing of go
-// code. Embedding Print*() calls in go code will print out a leader,
-// the current source file name, the current source line number, and
-// an optional message to the configured Writer (defaults to
-// os.Stdout) when the line is run.
-//
-// There is also a Dump() function used to dump complex data
-// structures in an easy to understand format. The Dump function uses
-// a modified version of Dave Collins'
-// https://github.com/davecgh/go-spew package to pretty-print data
-// structures.
+// Copyright 2019 Secure64 Software Corporation. All rights reserved.
+// Use of this source code is governed by a MIT-style license that can
+// be found in the LICENSE file.
+
+/*
+Package trace is used for printf-style tracing of go code. Embedding
+Print*() calls in go code will print out a leader, the current source
+file name, the current source line number, and an optional message to
+the configured Writer (defaults to os.Stdout) when the line is run.
+
+There is also a Dump() function used to dump complex data structures
+in an easy to understand format. The Dump function uses a modified
+version of Dave Collins' https://github.com/davecgh/go-spew package to
+pretty-print data structures.
+*/
 package trace
 
 import (
